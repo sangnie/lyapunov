@@ -38,6 +38,46 @@ class DataConfig(object):
 		self.input_size = len(self.datasets['char_to_int'])
 
 
+class TrainConfig(object):
+	def __init__(self, model_dir, batch_size, max_epoch, optimizer, learning_rate, optim_params = {}, start_epoch = 0, scheduler = None, scheduler_params = {}):
+		"""
+		Creates training configuration object
+		
+		Args:
+			model_dir: location for trained models to be stored/accessed
+			batch_size: batch size to be fed into network
+			max_epoch: maximum number of epochs to train network
+			optimizer: optimizer name, to refer to one of the optimzers in torch.optim
+				Choose from ['adadelta', 'adagrad', 'adam', 'adamW', 'sparseAdam', 'adamax', 'asgd', 'rmsProp', 'rprop', 'sgd']
+			learning_rate: learning rate of optimizer
+			optim_params: dictionary of additional paramaters for optimizer defined above
+			start_epoch: epoch on which to start/restart training (default =0, set to last completed epoch to begin training from previous spot)
+			scheduler: lr_scheduler from torch.optim.lr_scheduler (use only method name)
+			scheduler_params: parameters for scheduler defined above
+		"""
+
+		self.model_dir = model_dir
+		self.batch_size = batch_size
+		self.start_epoch = start_epoch
+		self.max_epoch = max_epoch
+		self.optimizer = optimizer
+		self.learning_rate = learning_rate
+		self.optim_params = optim_params
+		self.scheduler = scheduler
+		self.scheduler_params = scheduler_params
+
+		self.optimizer_options ={'adadelta' : optim.Adadelta, 'adagrad': optim.Adagrad, 'adam':optim.Adam, 'adamW': optim.AdamW, 'sparseAdam': optim.SparseAdam,
+					'adamax': optim.Adamax, 'asgd': optim.ASGD, 'rmsProp': optim.RMSprop, 'rprop': optim.Rprop, 'sgd': optim.SGD}
+
+	def get_optimizer(self, model_params):
+		return self.optimizer_options[self.optimizer](model_params, lr = self.learning_rate, **self.optim_params)
+
+	def get_scheduler(self, opt):
+		if self.scheduler == None:
+			return torch.optim.lr_scheduler.MultiStepLR(opt, [1,], gamma=1.0)
+		return self.scheduler(opt, **self.scheduler_params)
+
+
 class ModelConfig(object):
 	def __init__(self, model_type, num_layers, hidden_size, input_size, output_size, dropout, init_type, device, init_params = {}, x_init_params = {}, other_rnn_params = {}, 
 					bias = True, nonlinearity = 'tanh', id_init_param= None, batch_first = True, encoding = 'none'):
@@ -97,20 +137,21 @@ class ModelConfig(object):
 
 
 class FullConfig(object):
-	def __init__(self, dataCon, modelCon):
+	def __init__(self, dataConi, trainCon, modelCon):
 		self.data = dataCon
 		self.model = modelCon
+		self.train = trainCon
 		self.device = modelCon.device
 
     #Return full file prefix name with identifying parameters for this experiment
-	# def name(self):
-	# 	fullname = '{0}_L{1}_H{2}_{3}_drop{4}_{5}_lr{6}_{7}_{8}'.format(self.model.model_type, self.model.rnn_atts['num_layers'], self.model.rnn_atts['hidden_size'],
-	# 																		self.model.nonlinearity, self.model.dropout, self.train.optimizer,
-	# 																		self.train.learning_rate, self.model.init_type, self.model.init_params[self.model.id_init_param])
-	# 	for param, value in self.model.other_rnn_params.items():
-	# 		fullname += f'_{param}{value}'
+	def name(self):
+		fullname = '{0}_L{1}_H{2}_{3}_drop{4}_{5}_lr{6}_{7}_{8}'.format(self.model.model_type, self.model.rnn_atts['num_layers'], self.model.rnn_atts['hidden_size'],
+																			self.model.nonlinearity, self.model.dropout, self.train.optimizer,
+																			self.train.learning_rate, self.model.init_type, self.model.init_params[self.model.id_init_param])
+		for param, value in self.model.other_rnn_params.items():
+			fullname += f'_{param}{value}'
 		
-	# 	return fullname
+		return fullname
     
 class LyapConfig(object):
 	def __init__(self,batch_size, seq_length, ON_step = 1, warmup = 0, one_hot= False):
