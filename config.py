@@ -137,7 +137,7 @@ class ModelConfig(object):
 
 
 class FullConfig(object):
-	def __init__(self, dataConi, trainCon, modelCon):
+	def __init__(self, dataCon, trainCon, modelCon):
 		self.data = dataCon
 		self.model = modelCon
 		self.train = trainCon
