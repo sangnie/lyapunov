@@ -49,9 +49,9 @@ def oneStep(*params, model):
         return None
     elif l>2:
         states = (params[1], params[2])
-        return model(params[0], states)
+        return model(params[0], states)[1]
     else:
-        return model(*params)
+        return model(*params)[-1]
 
 def oneStepVarQR(J, Q):
     Z = torch.matmul(torch.transpose(J, 1, 2), Q) #Linear extrapolation of the network in many directions
@@ -70,16 +70,10 @@ def calc_LEs_an(*params, model, k_LE=100000, rec_layer= 0, kappa = 10, diff= 10,
 	cells = False #determine whether to track cell states (for LSTM)
 	x_in = Variable(params[0], requires_grad = False).to(device)
 	hc = params[1]
-	if len(hc) == 2:
-		cells = True
-		c0 = hc[1].to(device)
-		h0 = Variable(hc[0], requires_grad = False).to(device)
-	else:
-		h0 = Variable(hc, requires_grad = False).to(device)
+	h0 = Variable(hc, requires_grad = False).to(device)
 	num_layers, batch_size, hidden_size = h0.shape
 	_, feed_seq, input_size = x_in.shape
 	L = num_layers*hidden_size
-		
 	k_LE = max(min(L, k_LE), 1)
 	Q = torch.reshape(torch.eye(L), (1, L, L)).repeat(batch_size, 1, 1).to(device)
 	Q = Q[:, :, :k_LE] #Choose how many exponents to track
@@ -110,7 +104,7 @@ def calc_LEs_an(*params, model, k_LE=100000, rec_layer= 0, kappa = 10, diff= 10,
 			J = gru_jac(model.rnn_layer.all_weights, ht, xt, bias = bias)
 		else:
 			J = calc_Jac(xt, *states, model=model)
-		_, states = oneStep(xt, *states, model=model)
+		states = oneStep(xt, *states, model=model)
 		if cells:
 			(ht, ct) = states
 		else:
@@ -145,7 +139,7 @@ def calc_LEs_an(*params, model, k_LE=100000, rec_layer= 0, kappa = 10, diff= 10,
 		else:
 			J = calc_Jac(xt, *states, model=model)
 		
-		_, states = oneStep(xt, *states, model=model)
+		states = oneStep(xt, *states, model=model)
 		if QR:
 			Q, r = oneStepVarQR(J, Q)
 			t_QR = t
