@@ -10,6 +10,7 @@ class RNNModel(nn.ModuleList):
         self.model_type = mcon.model_type
         self.input_size = mcon.rnn_atts['input_size']
         dropout = mcon.dropout
+        self.device = mcon.device
 
         # self.embedding = nn.Embedding(self.vocab_len, self.input_size)
         self.encoder = lambda xt: nn.functional.one_hot(xt.long(), self.input_size)
@@ -47,8 +48,8 @@ class RNNModel(nn.ModuleList):
         return y_hat, rnn_out, rnn_hn
 
     def init_hidden(self, batch_size):
-        h = torch.zeros(self.num_layers, batch_size, self.hidden_size)
-        c = torch.zeros(self.num_layers, batch_size, self.hidden_size)
+        h = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
+        c = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
 
         if self.model_type == 'lstm':
             return (h, c)
