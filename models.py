@@ -45,7 +45,7 @@ class RNNModel(nn.ModuleList):
         # print('shapes', rnn_out.shape, rnn_hn.shape, h.shape)
         d_out = self.dropout(rnn_out)
         y_hat = self.fc(d_out)
-        return y_hat, rnn_out, rnn_hn
+        return y_hat, rnn_hn
 
     def init_hidden(self, batch_size):
         h = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(self.device)
