@@ -8,22 +8,22 @@ class RNNModel(nn.ModuleList):
         self.num_layers = mcon.rnn_atts['num_layers']
         self.hidden_size = mcon.rnn_atts['hidden_size']
         self.model_type = mcon.model_type
-        input_size = mcon.rnn_atts['input_size']
+        self.input_size = mcon.rnn_atts['input_size']
         dropout = mcon.dropout
 
-        # self.embedding = nn.Embedding(self.vocab_len, input_size)
-        self.encoder = lambda xt: nn.functional.one_hot(xt.long(), input_size)
+        # self.embedding = nn.Embedding(self.vocab_len, self.input_size)
+        self.encoder = lambda xt: nn.functional.one_hot(xt.long(), self.input_size)
 
         if self.model_type == 'gru':
-            self.rnn_layer = nn.GRU(input_size, self.hidden_size, batch_first=True,
+            self.rnn_layer = nn.GRU(self.input_size, self.hidden_size, batch_first=True,
                               bidirectional=False, dropout=dropout, num_layers=self.num_layers)
             # self.gate_size = self.hidden_size*3
         elif self.model_type == 'rnn':
-            self.rnn_layer = nn.RNN(input_size, self.hidden_size, batch_first=True, nonlinearity='tanh',
+            self.rnn_layer = nn.RNN(self.input_size, self.hidden_size, batch_first=True, nonlinearity='tanh',
                               bidirectional=False, dropout=dropout, num_layers=self.num_layers)
             # self.gate_size = self.hidden_size
         elif self.model_type == 'lstm':
-            self.rnn_layer = nn.LSTM(input_size, self.hidden_size, batch_first=True,
+            self.rnn_layer = nn.LSTM(self.input_size, self.hidden_size, batch_first=True,
                                bidirectional=False, dropout=dropout, num_layers=self.num_layers)
             # self.gate_size = self.hidden_size * 4
 
