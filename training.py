@@ -16,7 +16,7 @@ def load_checkpoint(full_con, load_epoch, verbose = False):
     if load_epoch > 0:
         if os.path.isfile(ckpt_name):
             ckpt = torch.load(ckpt_name)
-            model.load_state_dict(ckpt['model_state_dict'])
+            model.load_state_dict(ckpt['model_state_dict'], map_location=device)
             optimizer.load_state_dict(ckpt['optimizer_state_dict'])
             train_loss = ckpt['train_loss']
             val_loss = ckpt['val_loss']
