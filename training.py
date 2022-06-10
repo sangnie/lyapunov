@@ -15,8 +15,8 @@ def load_checkpoint(full_con, load_epoch, verbose = False):
     ckpt_name = '{}/{}_e{}.ckpt'.format(full_con.train.model_dir, full_con.name(), load_epoch)
     if load_epoch > 0:
         if os.path.isfile(ckpt_name):
-            ckpt = torch.load(ckpt_name)
-            model.load_state_dict(ckpt['model_state_dict'], map_location=device)
+            ckpt = torch.load(ckpt_name, map_location=device)
+            model.load_state_dict(ckpt['model_state_dict'])
             optimizer.load_state_dict(ckpt['optimizer_state_dict'])
             train_loss = ckpt['train_loss']
             val_loss = ckpt['val_loss']
